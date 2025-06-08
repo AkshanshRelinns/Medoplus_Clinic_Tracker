@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"  # required for session
 
 # MongoDB setup
-client = MongoClient("localhost", 27017)
+client = MongoClient("mongodb+srv://survey:<medoplus123>@cluster0.agfum2y.mongodb.net/")
 db = client["AppointmentDB"]
 collection = db["Appointments"]
 
