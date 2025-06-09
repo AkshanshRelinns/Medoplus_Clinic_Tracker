@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, redirect, flash, session, url_for
 from pymongo import MongoClient
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # required for session
 
 # MongoDB setup
-client = MongoClient("mongodb+srv://survey:medoplus123@cluster0.agfum2y.mongodb.net/")
+client = MongoClient(os.getenv("MONGO_URI"))
 db = client["AppointmentDB"]
 collection = db["Appointments"]
 
