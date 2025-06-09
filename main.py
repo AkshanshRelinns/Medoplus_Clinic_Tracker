@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"  # required for session
 
 # MongoDB setup
-client = MongoClient("mongodb+srv://survey:<medoplus123>@cluster0.agfum2y.mongodb.net/")
+client = MongoClient("mongodb+srv://survey:medoplus123@cluster0.agfum2y.mongodb.net/")
 db = client["AppointmentDB"]
 collection = db["Appointments"]
 
@@ -65,6 +65,7 @@ def form():
 # ... rest of your Flask code ...
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=10000)
+    app.run(debug=True)
+    # app.run(host='0.0.0.0', port=10000)
 
 
