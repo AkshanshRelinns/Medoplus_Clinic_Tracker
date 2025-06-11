@@ -11,20 +11,16 @@ app.secret_key = "your_secret_key"  # Change this to a strong secret key
 client = MongoClient("mongodb+srv://survey:medoplus123@cluster0.agfum2y.mongodb.net/?retryWrites=true&w=majority")
 db = client["AppointmentDB"]
 collection = db["Appointments"]
-users_collection = db["Users"]  # New collection for storing users
+users_collection = db["Users"]  # Collection for storing users
 
-
-admin_user = {
-    "username": "Medoplus",
-    "password": "clinic123",
-    "is_admin": True
-}
-
-if not users_collection.find_one({"username": admin_user["username"]}):
-    users_collection.insert_one(admin_user)
-    print("Admin user inserted.")
-else:
-    print("Admin user already exists.")
+# Auto-create default admin user if not exists
+def initialize_admin():
+    if not users_collection.find_one({"username": "Medoplus"}):
+        users_collection.insert_one({
+            "username": "Medoplus",
+            "password": "clinic123",
+            "is_admin": True
+        })
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -51,7 +47,7 @@ def logout():
 
 @app.route("/")
 def home():
-    return redirect(url_for("form"))
+    return redirect(url_for("login"))
 
 @app.route("/form", methods=["GET", "POST"])
 def form():
@@ -139,4 +135,5 @@ def download():
     return Response(generate(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=appointments.csv"})
 
 if __name__ == "__main__":
+    initialize_admin()
     app.run(host="0.0.0.0", port=10000)

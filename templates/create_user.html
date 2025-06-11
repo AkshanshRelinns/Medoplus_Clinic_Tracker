@@ -1,26 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Create New User</title>
+    <meta charset="UTF-8">
+    <title>Create User</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h2>Create User</h2>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-          {% for message in messages %}
-            <li style="color: green;">{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-    <form method="POST">
-        <label>New Username:</label><br>
-        <input type="text" name="new_user" required><br><br>
-        <label>Password:</label><br>
-        <input type="password" name="new_pass" required><br><br>
-        <input type="submit" value="Create User">
-    </form>
-    <p><a href="{{ url_for('admin') }}">Back to Admin</a></p>
+<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+  <div class="position-absolute top-0 end-0 p-3">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" height="60">
+</div>
+    <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
+        <h4 class="mb-4 text-center">Create New User</h4>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert alert-info">{{ messages[0] }}</div>
+          {% endif %}
+        {% endwith %}
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input name="new_user" type="text" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input name="new_pass" type="password" class="form-control" required>
+            </div>
+            <div class="d-grid">
+                <button class="btn btn-success" type="submit">Create</button>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('admin') }}" class="text-decoration-none">Back to Admin</a>
+            </div>
+        </form>
+    </div>
 </body>
 </html>

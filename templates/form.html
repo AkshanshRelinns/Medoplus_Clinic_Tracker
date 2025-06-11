@@ -1,85 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Appointment Entry Form</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Appointment Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-
+  <div class="position-absolute top-0 end-0 p-3">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" height="60">
+</div>
 <div class="container mt-5">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Appointment Entry Form</h2>
-    <div>
-      <span class="me-2">Welcome, {{ session['username'] }}</span>
-      <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
-    </div>
-  </div>
+    <div class="card shadow-lg p-4">
+        <h2 class="mb-4 text-center">Appointment Form</h2>
 
-  <!-- Flash messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}" role="alert">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
-  <form method="post" class="p-4 bg-white rounded shadow-sm">
-    <div class="mb-3">
-      <label class="form-label">Name *</label>
-      <input type="text" name="name" class="form-control" required>
-    </div>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="name" class="form-label">Patient Name</label>
+                <input type="text" name="name" class="form-control" id="name" required>
+            </div>
 
-    <div class="mb-3">
-      <label class="form-label">Gender *</label>
-      <select name="gender" class="form-select" required>
-        <option value="">-- Select Gender --</option>
-        <option>Male</option>
-        <option>Female</option>
-        <option>Other</option>
-      </select>
-    </div>
+            <div class="mb-3">
+                <label for="gender" class="form-label">Gender</label>
+                <select name="gender" class="form-select" id="gender" required>
+                    <option value="">-- Select --</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
 
-    <div class="mb-3">
-      <label class="form-label">Phone Number *</label>
-      <input type="text" name="phone" class="form-control" required>
-    </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="tel" name="phone" class="form-control" id="phone" required>
+            </div>
 
-    <div class="mb-3">
-      <label class="form-label">Discount Coupon Number</label>
-      <input type="text" name="discount_coupon" class="form-control">
-    </div>
+            <div class="mb-3">
+                <label for="discount_coupon" class="form-label">Discount Coupon Code</label>
+                <input type="text" name="discount_coupon" class="form-control" id="discount_coupon">
+            </div>
 
-    <div class="mb-3">
-      <label class="form-label">Type of Coupon</label>
-      <select name="coupon_type" class="form-select">
-        <option value="">-- Select Type --</option>
-        <option>A</option>
-        <option>B</option>
-        <option>C</option>
-        <option>D</option>
-      </select>
-    </div>
+            <div class="mb-3">
+                <label for="coupon_type" class="form-label">Coupon Type</label>
+                <select name="coupon_type" class="form-select" id="coupon_type" required>
+                    <option value="">-- Select --</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            </div>
 
-    <div class="mb-3">
-      <label class="form-label">Tentative Appointment Date (DD-MM-YYYY) *</label>
-      <input type="text" name="date" class="form-control" required>
-    </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Tentative Appointment Date</label>
+                <input type="date" name="date" class="form-control" id="date" required>
+            </div>
 
-    <div class="mb-3">
-      <label class="form-label">Entry Done By *</label>
-      <input type="text" name="entry_by" class="form-control" required>
-    </div>
+            <div class="mb-3">
+                <label for="entry_by" class="form-label">Entry Done By</label>
+                <input type="text" name="entry_by" class="form-control" id="entry_by" required>
+            </div>
 
-    <div class="d-flex justify-content-between">
-      <button type="submit" class="btn btn-success">Submit</button>
-      <button type="reset" class="btn btn-secondary">Clear</button>
+            <button type="submit" class="btn btn-primary w-100">Submit Appointment</button>
+        </form>
     </div>
-  </form>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
