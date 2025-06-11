@@ -8,8 +8,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Change this to a strong secret key
 
 # MongoDB setup
-# client = MongoClient(os.getenv("MONGO_URI"))
-client = MongoClient("mongodb+srv://survey:medoplus123@cluster0.agfum2y.mongodb.net/?retryWrites=true&w=majority")
+client = MongoClient(os.getenv("MONGO_URI"))
 db = client["AppointmentDB"]
 collection = db["Appointments"]
 
