@@ -8,15 +8,23 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Change this to a strong secret key
 
 # MongoDB setup
-client = MongoClient(os.getenv("MONGO_URI"))
+client = MongoClient("mongodb+srv://survey:medoplus123@cluster0.agfum2y.mongodb.net/?retryWrites=true&w=majority")
 db = client["AppointmentDB"]
 collection = db["Appointments"]
+users_collection = db["Users"]  # New collection for storing users
 
-# Hardcoded user credentials for demo (use MongoDB in production)
-USER_CREDENTIALS = {
-    "Medoplus": {"password": "clinic123", "is_admin": True},
-    "user1": {"password": "user123", "is_admin": False}
+
+admin_user = {
+    "username": "Medoplus",
+    "password": "clinic123",
+    "is_admin": True
 }
+
+if not users_collection.find_one({"username": admin_user["username"]}):
+    users_collection.insert_one(admin_user)
+    print("Admin user inserted.")
+else:
+    print("Admin user already exists.")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -24,11 +32,11 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        user = USER_CREDENTIALS.get(username)
+        user = users_collection.find_one({"username": username})
         if user and user["password"] == password:
             session["username"] = username
-            session["is_admin"] = user["is_admin"]
-            return redirect(url_for("admin" if user["is_admin"] else "form"))
+            session["is_admin"] = user.get("is_admin", False)
+            return redirect(url_for("admin" if user.get("is_admin") else "form"))
         else:
             flash("Invalid username or password")
             return redirect(url_for("login"))
@@ -88,8 +96,17 @@ def create_user():
     if request.method == "POST":
         new_user = request.form.get("new_user")
         new_pass = request.form.get("new_pass")
-        USER_CREDENTIALS[new_user] = {"password": new_pass, "is_admin": False}
-        flash("User created successfully!")
+
+        if users_collection.find_one({"username": new_user}):
+            flash("User already exists!")
+        else:
+            users_collection.insert_one({
+                "username": new_user,
+                "password": new_pass,
+                "is_admin": False
+            })
+            flash("User created successfully!")
+
         return redirect(url_for("admin"))
 
     return render_template("create_user.html")
@@ -122,4 +139,4 @@ def download():
     return Response(generate(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=appointments.csv"})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000)
