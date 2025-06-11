@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Console</title>
+</head>
+<body>
+    <h2>Admin Console</h2>
+    <ul>
+        <li><a href="{{ url_for('create_user') }}">Create New User</a></li>
+        <li><a href="{{ url_for('download') }}">Download Appointments (CSV)</a></li>
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+    </ul>
+</body>
+</html>

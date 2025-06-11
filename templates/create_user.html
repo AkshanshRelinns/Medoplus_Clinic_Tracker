@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create New User</title>
+</head>
+<body>
+    <h2>Create User</h2>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li style="color: green;">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <form method="POST">
+        <label>New Username:</label><br>
+        <input type="text" name="new_user" required><br><br>
+        <label>Password:</label><br>
+        <input type="password" name="new_pass" required><br><br>
+        <input type="submit" value="Create User">
+    </form>
+    <p><a href="{{ url_for('admin') }}">Back to Admin</a></p>
+</body>
+</html>
