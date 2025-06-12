@@ -234,12 +234,22 @@ def download_users():
         flash("Unauthorized", "error")
         return redirect(url_for("login"))
 
-    users = users_collection.find({}, {"_id": 0})
+    users = users_collection.find()
 
     def generate():
-        yield "Username,Password,Is_Admin\n"
+        # CSV header
+        data = [["Username", "Password", "Full Name", "Phone", "Location", "Is Admin"]]
         for u in users:
-            yield f"{u.get('username')},{u.get('password')},{u.get('is_admin', False)}\n"
+            data.append([
+                u.get("username", ""),
+                u.get("password", ""),
+                u.get("full_name", ""),
+                u.get("phone", ""),
+                u.get("location", ""),
+                str(u.get("is_admin", False))
+            ])
+        for row in data:
+            yield ",".join(map(str, row)) + "\n"
 
     return Response(generate(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=users.csv"})
 
