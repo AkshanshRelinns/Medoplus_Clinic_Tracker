@@ -1,40 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Clinic Tracker</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>{% if session.get('lang') == 'hi' %}लॉगिन{% else %}Login{% endif %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="bg-light d-flex justify-content-center align-items-center vh-100">
   <div class="position-absolute top-0 end-0 p-3">
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" height="60">
-</div>
-    <div class="container d-flex justify-content-center align-items-center min-vh-100">
-        <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px;">
-            <h4 class="text-center mb-4">Clinic Tracker Login</h4>
-            {% with messages = get_flashed_messages() %}
-              {% if messages %}
-              <div class="alert alert-warning" role="alert">
-                {{ messages[0] }}
-              </div>
-              {% endif %}
-            {% endwith %}
-            <form method="POST">
-                <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary">Login</button>
-                </div>
-            </form>
-        </div>
+  </div>
+
+  <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
+    <h4 class="mb-4 text-center">
+      {% if session.get('lang') == 'hi' %} उपयोगकर्ता लॉगिन {% else %} User Login {% endif %}
+    </h4>
+
+    <!-- Flash message -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Login Form -->
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">{% if session.get('lang') == 'hi' %} यूज़रनेम {% else %} Username {% endif %}</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">{% if session.get('lang') == 'hi' %} पासवर्ड {% else %} Password {% endif %}</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <div class="d-grid">
+        <button class="btn btn-primary" type="submit">
+          {% if session.get('lang') == 'hi' %} लॉगिन करें {% else %} Login {% endif %}
+        </button>
+      </div>
+    </form>
+
+    <!-- Language Switch -->
+    <div class="text-center mt-3">
+      <a href="{{ url_for('set_language', lang='en') }}" class="btn btn-sm btn-outline-secondary {% if session.get('lang') == 'en' %}active{% endif %}">English</a>
+      <a href="{{ url_for('set_language', lang='hi') }}" class="btn btn-sm btn-outline-secondary {% if session.get('lang') == 'hi' %}active{% endif %}">हिंदी</a>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </div>
 </body>
 </html>

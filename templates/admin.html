@@ -1,24 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Console</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light p-5">
+<body>
     <div class="position-absolute top-0 end-0 p-3">
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" height="60">
 </div>
-    <div class="container">
-        <h2 class="mb-4">Admin Console</h2>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="alert alert-success">{{ messages[0] }}</div>
-          {% endif %}
-        {% endwith %}
-        <a href="{{ url_for('create_user') }}" class="btn btn-success me-2">Create User</a>
-        <a href="{{ url_for('download') }}" class="btn btn-primary me-2">Download CSV</a>
-        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Logout</a>
+<div class="container mt-5">
+  <h2 class="text-center">Admin Console</h2>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="container mt-4">
+        <div class="alert alert-{{ 'success' if category == 'success' else 'warning' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+
+  
+
+  <form method="get" action="{{ url_for('download') }}" class="mb-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-5">
+        <label for="start_date" class="form-label">Start Date</label>
+        <input type="date" class="form-control" name="start_date" required>
+      </div>
+      <div class="col-md-5">
+        <label for="end_date" class="form-label">End Date</label>
+        <input type="date" class="form-control" name="end_date" required>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100" name="filter" value="yes">Download Filtered Data</button>
+      </div>
     </div>
+  </form>
+
+  <div class="text-center mb-4">
+    <a href="{{ url_for('download') }}" class="btn btn-secondary">Download Full Data</a>
+  </div>
+
+  <div class="text-center my-4">
+    <a href="{{ url_for('create_user') }}" class="btn btn-outline-primary">+ Create New User</a>
+  <a href="{{ url_for('reset_password') }}" class="btn btn-outline-warning me-2">Reset User Password</a>
+  <a href="{{ url_for('download_users') }}" class="btn btn-outline-success">Download User List</a>
+</div>
+
+  <h4 class="mt-5">Recent Appointments</h4>
+<table class="table table-bordered table-striped mt-2">
+  <thead class="table-light">
+    <tr>
+      <th>Name</th>
+      <th>Phone</th>
+      <th>Date</th>
+      <th>Entry By</th>
+      <th>Timestamp</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in appointments %}
+      <tr>
+        <td>{{ a.name }}</td>
+        <td>{{ a.phone }}</td>
+        <td>{{ a.tentative_appointment_date }}</td>
+        <td>{{ a.entry_done_by }}</td>
+        <td>{{ a.timestamp.strftime('%Y-%m-%d %H:%M') if a.timestamp else '' }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+  <div class="text-center">
+    <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+  </div>
+</div>
 </body>
 </html>

@@ -1,26 +1,28 @@
 from flask import Flask, render_template, request, redirect, flash, session, url_for, Response
 from pymongo import MongoClient
-from datetime import datetime
-import os
-import csv
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"  # Change this to a strong secret key
+app.secret_key = "your_secret_key"
 
 # MongoDB setup
-client = MongoClient("mongodb+srv://survey:medoplus123@cluster0.agfum2y.mongodb.net/?retryWrites=true&w=majority")
+client = MongoClient("mongodb+srv://survey:medoplus123@cluster0.agfum2y.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client["AppointmentDB"]
 collection = db["Appointments"]
 users_collection = db["Users"]  # Collection for storing users
 
 # Auto-create default admin user if not exists
 def initialize_admin():
-    if not users_collection.find_one({"username": "Medoplus"}):
-        users_collection.insert_one({
-            "username": "Medoplus",
-            "password": "clinic123",
-            "is_admin": True
-        })
+    try:
+        if not users_collection.find_one({"username": "Medoplus"}):
+            users_collection.insert_one({
+                "username": "Medoplus",
+                "password": "clinic123",
+                "is_admin": True
+            })
+        print(" Admin user checked/created")
+    except Exception as e:
+        print(" Failed to initialize admin:", e)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -34,7 +36,10 @@ def login():
             session["is_admin"] = user.get("is_admin", False)
             return redirect(url_for("admin" if user.get("is_admin") else "form"))
         else:
-            flash("Invalid username or password")
+            if session.get("lang") == "hi":
+                flash("अमान्य उपयोगकर्ता नाम या पासवर्ड।", "error")
+            else:
+                flash("Invalid username or password.", "error")
             return redirect(url_for("login"))
 
     return render_template("login.html")
@@ -53,6 +58,13 @@ def home():
 def form():
     if "username" not in session:
         return redirect(url_for("login"))
+    
+    if "lang" not in session:
+        session["lang"] = "en"
+
+    # Fetch user record from MongoDB
+    user = users_collection.find_one({"username": session["username"]})
+    entry_by_phone = user.get("phone", "Unknown") 
 
     if request.method == "POST":
         data = {
@@ -61,27 +73,48 @@ def form():
             "phone": request.form.get("phone"),
             "discount_coupon": request.form.get("discount_coupon"),
             "coupon_type": request.form.get("coupon_type"),
-            "tentative_appointment_date": request.form.get("date"),
-            "entry_done_by": request.form.get("entry_by"),
+            "coupon_issue_date": request.form.get("coupon_issue_date"),
+            "discount_amount_type": request.form.get("discount_amount_type"),
+            "discount_amount_value": request.form.get("discount_amount_value"),
+            "tentative_appointment_date": request.form.get("tentative_appointment_date"),
+            "entry_done_by": entry_by_phone, 
             "timestamp": datetime.now()
         }
 
-        if not all([data["name"], data["gender"], data["phone"], data["tentative_appointment_date"], data["entry_done_by"]]):
+        # Validate required fields
+        if not all([data["name"], data["gender"], data["phone"], data["tentative_appointment_date"]]):
             flash("Please fill all required fields.", "error")
+            return render_template("form.html", **request.form)
         else:
             collection.insert_one(data)
-            flash("Appointment saved successfully!", "success")
+            if session.get("lang") == "hi":
+                flash("अपॉइंटमेंट सफलतापूर्वक सहेजा गया!", "success")
+            else:
+                flash("Appointment saved successfully!", "success")
+            return redirect(url_for("form"))
 
-        return redirect(url_for("form"))
+    return render_template("form.html",
+                            name=request.form.get("name", ""),
+                            gender=request.form.get("gender", ""),
+                            phone=request.form.get("phone", ""),
+                            discount_coupon=request.form.get("discount_coupon", ""),
+                            coupon_type=request.form.get("coupon_type", ""),
+                            coupon_issue_date=request.form.get("coupon_issue_date", ""),
+                            discount_amount_type=request.form.get("discount_amount_type", ""),
+                            discount_amount_value=request.form.get("discount_amount_value", ""),
+                            date=request.form.get("date", "")
+)
 
-    return render_template("form.html")
 
 @app.route("/admin")
 def admin():
     if not session.get("is_admin"):
         flash("Unauthorized", "error")
         return redirect(url_for("login"))
-    return render_template("admin.html")
+
+    appointments = collection.find().sort("timestamp", -1).limit(10)  # Show 10 most recent appointments
+    return render_template("admin.html", appointments=appointments)
+
 
 @app.route("/create-user", methods=["GET", "POST"])
 def create_user():
@@ -92,6 +125,9 @@ def create_user():
     if request.method == "POST":
         new_user = request.form.get("new_user")
         new_pass = request.form.get("new_pass")
+        full_name = request.form.get("full_name")
+        phone = request.form.get("phone")
+        location = request.form.get("location")
 
         if users_collection.find_one({"username": new_user}):
             flash("User already exists!")
@@ -99,13 +135,52 @@ def create_user():
             users_collection.insert_one({
                 "username": new_user,
                 "password": new_pass,
-                "is_admin": False
+                "is_admin": False,
+                "full_name": full_name,
+                "phone": phone,
+                "location": location
             })
-            flash("User created successfully!")
+            flash("User created successfully!", "success")
 
         return redirect(url_for("admin"))
 
     return render_template("create_user.html")
+
+@app.route("/set-language/<lang>")
+def set_language(lang):
+    if lang in ["en", "hi"]:
+        session["lang"] = lang
+    return redirect(request.referrer or url_for("form"))
+
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    if not session.get("is_admin"):
+        flash("Unauthorized", "error")
+        return redirect(url_for("login"))
+
+    users = users_collection.find({}, {"username": 1, "_id": 0})
+    usernames = [u["username"] for u in users]
+
+    if request.method == "POST":
+        selected_user = request.form.get("username")
+        new_pass = request.form.get("new_password")
+
+        result = users_collection.update_one(
+            {"username": selected_user},
+            {"$set": {"password": new_pass}}
+        )
+
+        if result.modified_count:
+            flash(f"Password for '{selected_user}' has been reset.", "success")
+        else:
+            flash("Failed to reset password.", "warning")
+
+        return redirect(url_for("admin"))
+
+    return render_template("reset_password.html", usernames=usernames)
+
+
 
 @app.route("/download")
 def download():
@@ -113,10 +188,24 @@ def download():
         flash("Unauthorized", "error")
         return redirect(url_for("login"))
 
-    appointments = collection.find()
+    # Read filter parameters
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+    filter_flag = request.args.get("filter") == "yes"
+
+    query = {}
+    if filter_flag and start_date and end_date:
+        try:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
+            query["timestamp"] = {"$gte": start_dt, "$lte": end_dt}
+        except Exception as e:
+            return f"Date parsing error: {str(e)}"
+
+    appointments = collection.find(query)
 
     def generate():
-        data = [["Name", "Gender", "Phone", "Discount", "Coupon Type", "Date", "Entry By", "Timestamp"]]
+        data = [["Name", "Gender", "Phone", "Discount", "Coupon Type", "Coupon Issue Date", "Discount Amount Type", "Discount Amount Value", "Tentative Appointment Date", "Entry By", "Timestamp"]]
         for a in appointments:
             data.append([
                 a.get("name", ""),
@@ -124,16 +213,36 @@ def download():
                 a.get("phone", ""),
                 a.get("discount_coupon", ""),
                 a.get("coupon_type", ""),
+                a.get("coupon_issue_date", ""),
+                a.get("discount_amount_type", ""),
+                a.get("discount_amount_value", ""),
                 a.get("tentative_appointment_date", ""),
                 a.get("entry_done_by", ""),
                 str(a.get("timestamp", ""))
             ])
-
         for row in data:
-            yield ",".join(row) + "\n"
+            yield ",".join(map(str, row)) + "\n"
 
     return Response(generate(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=appointments.csv"})
 
+
+@app.route("/download-users")
+def download_users():
+    if not session.get("is_admin"):
+        flash("Unauthorized", "error")
+        return redirect(url_for("login"))
+
+    users = users_collection.find({}, {"_id": 0})
+
+    def generate():
+        yield "Username,Password,Is_Admin\n"
+        for u in users:
+            yield f"{u.get('username')},{u.get('password')},{u.get('is_admin', False)}\n"
+
+    return Response(generate(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=users.csv"})
+
+
 if __name__ == "__main__":
+    print("Starting Flask App...")
     initialize_admin()
-    app.run(host="0.0.0.0", port=10000)
+    app.run(debug=True)
