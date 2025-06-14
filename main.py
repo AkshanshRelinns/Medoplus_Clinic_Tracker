@@ -6,9 +6,8 @@ import os
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-# MongoDB setup
-MONGO_URI = os.getenv("MONGO_URI") 
-client = MongoClient(MONGO_URI)
+# MongoDB setup 
+client = MongoClient("mongodb+srv://survey:medoplus123@cluster0.agfum2y.mongodb.net/")
 db = client["AppointmentDB"]
 collection = db["Appointments"]
 users_collection = db["Users"]  # Collection for storing users
