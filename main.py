@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta
 import os
 
-app = Flask(__name__)
+app = Flask(Medoplus)
 app.secret_key = "your_secret_key"
 
 # MongoDB setup
